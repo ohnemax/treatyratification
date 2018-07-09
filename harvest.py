@@ -69,7 +69,7 @@ def getcountry(hlink):
                     signed += 1
                 if 'signed' not in ret[treaty] or ret[treaty]['signed'] > dates[i]:
                     ret[treaty]['signed'] = dates[i]
-            elif "ratification" in actions[i].lower():
+            elif "ratification" in actions[i].lower() or "acceptance" in actions[i].lower() or "approval" in actions[i].lower():
                 if 'ratified' not in ret[treaty]:
                     ratified += 1
                 if 'ratified' not in ret[treaty] or ret[treaty]['ratified'] > dates[i]:
