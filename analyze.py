@@ -373,6 +373,9 @@ f.close()
 # adf holds what we want for second table
 adf.to_csv('countrydata.csv', columns=['country', 'totaltreaties', 'signed', 'ratified', 'acceded', 'signedandratified', 'ratificationtime-min', 'ratificationtime-median', 'ratificationtime-mean', 'ratificationtime-max'], index=False)
 
+# third: competition
+compdf.to_csv('competition.csv', columns=['treaty'] + [str(i) for i in range(1, 25)], index=False)
+
 print("++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++")
 print("Now some plots")
 
