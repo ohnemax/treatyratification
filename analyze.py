@@ -476,6 +476,7 @@ cb.set_ticklabels(['immediate', '1 year', '2 years', '3 years', '4 years', '>=5 
 plt.title('Median Time of Treaty Ratification')
 plt.tight_layout()
 plt.savefig('median.pdf')
+plt.savefig('median.svg')
 plt.show()
 
 # mean
@@ -518,6 +519,7 @@ cb.set_ticklabels(['immediate', '2 year', '4 years', '6 years', '8 years', '>=10
 
 plt.title('Mean Time of Treaty Ratification')
 plt.tight_layout()
+plt.savefig('mean.svg')
 plt.savefig('mean.pdf')
 plt.show()
 
@@ -561,6 +563,7 @@ cb.set_ticklabels(['immediate', 'quarter', 'half', 'three quarters', '1 year'])
 
 plt.title('Min Time of Treaty Ratification')
 plt.tight_layout()
+plt.savefig('min.svg')
 plt.savefig('min.pdf')
 plt.show()
 
@@ -604,6 +607,7 @@ cb.set_ticklabels(['immediate', '4 years', '8 years', '12 years', '16 years', '>
 
 plt.title('Maximal Time of Treaty Ratification')
 plt.tight_layout()
+plt.savefig('max.svg')
 plt.savefig('max.pdf')
 plt.show()
 
@@ -656,6 +660,7 @@ cb.set_ticklabels(['immediate', 'quarter', 'half', '3 quarter', '1 years or more
 
 plt.title('TPNW: Time of Treaty Ratification')
 plt.tight_layout()
+plt.savefig('tpnw-rat.svg')
 plt.savefig('tpnw-rat.pdf')
 plt.show()
 
@@ -700,6 +705,7 @@ cb.set_ticklabels(['2017-09-20', wowdate, '>=' + enddate.strftime("%Y-%m-%d")])
 
 plt.title('TPNW: When should they ratify?')
 plt.tight_layout()
+plt.savefig('tpnw-ratification-estimate-min.svg')
 plt.savefig('tpnw-ratification-estimate-min.pdf')
 plt.show()
                       
