@@ -6,6 +6,7 @@ from matplotlib import cm
 import matplotlib as mpl
 import cartopy.io.shapereader as shpreader
 import datetime
+from dateutil.relativedelta import relativedelta
 
 from dateutil import parser as dateparser
 import operator
@@ -16,34 +17,44 @@ import numpy as np
 
 import pandas as pd
 
+# set comparison date
+# today
+# compdate = datetime.datetime.now()
+# compdatestring = compdatedate.strftime("%Y-%m-%d")
+
+# 1st anniversary
+compdatestring = "2018-07-07"
+compdate = dateparser.parse(compdatestring)
+
 # dates when treaties opened for signature. from http://disarmament.un.org/treaties/
 sigopen = {u'Anti-Personnel Mine Ban Convention': '3 December 1997',
- u'Treaty on Conventional Armed Forces in Europe (CFE)': '19 November 1990',
- u'Chemical Weapons Convention': '13 January 1993',
- u'Outer Space Treaty': '27 January 1967',
- u'Inter-American Convention on Transparency': '07 June 1999',
- u'Antarctic Treaty': '1 December 1959',
- u'International Convention for the Suppression of Acts of Nuclear Terrorism': '14 September 2005',
- u'Treaty on the Non-Proliferation of Nuclear Weapons (NPT)': '1 July 1968', 
- u'Convention on Certain Conventional Weapons': '10 April 1981',
- u'Partial Test Ban Treaty': '8 August 1963',
- u'1925 Geneva Protocol': '17 June 1925',
- u'Convention on Cluster Munitions': '3 December 2008',
- u'Convention on Environmental Modification Techniques (ENMOD)': '18 May 1977',
- u'Biological Weapons Convention': '10 April 1972',
- u'Treaty on Open Skies': '24 March 1992',
- u'Inter-American Convention on Firearms': '14 November 1997',
- u'Comprehensive Nuclear-Test-Ban Treaty': '24 September 1996',
- u'Sea-Bed Treaty': '11 February 1971',
- u'Kinshasa Convention': '19 November 2010',
- u'Pelindaba Treaty': '11 April 1996', 
- u'Treaty on the Prohibition of Nuclear Weapons': '20 September 2017',
- u'Arms Trade Treaty': '3 June 2013',
- u'Treaty on a Nuclear-Weapon-Free Zone in Central Asia (CANWFZ)': '8 September 2006',
- u'Bangkok Treaty': '15 December 1995',
- u'Treaty of Tlatelolco': '14 February 1967',
- u'Moon Treaty (Celestial Bodies)': '18 December 1979', 
- u'Treaty of Rarotonga': '6 August 1985'}
+           u'Treaty on Conventional Armed Forces in Europe (CFE)': '19 November 1990',
+           u'Chemical Weapons Convention': '13 January 1993',
+           u'Outer Space Treaty': '27 January 1967',
+           u'Inter-American Convention on Transparency': '07 June 1999',
+           u'Antarctic Treaty': '1 December 1959',
+           u'International Convention for the Suppression of Acts of Nuclear Terrorism': '14 September 2005',
+           u'Treaty on the Non-Proliferation of Nuclear Weapons (NPT)': '1 July 1968', 
+           u'Convention on Certain Conventional Weapons': '10 April 1981',
+           u'Partial Test Ban Treaty': '8 August 1963',
+           u'1925 Geneva Protocol': '17 June 1925',
+           u'Convention on Cluster Munitions': '3 December 2008',
+           u'Convention on Environmental Modification Techniques (ENMOD)': '18 May 1977',
+           u'Biological Weapons Convention': '10 April 1972',
+           u'Treaty on Open Skies': '24 March 1992',
+           u'Inter-American Convention on Firearms': '14 November 1997',
+           u'Comprehensive Nuclear-Test-Ban Treaty': '24 September 1996',
+           u'Sea-Bed Treaty': '11 February 1971',
+           u'Kinshasa Convention': '19 November 2010',
+           u'Pelindaba Treaty': '11 April 1996', 
+           u'Treaty on the Prohibition of Nuclear Weapons': '20 September 2017',
+           u'Arms Trade Treaty': '3 June 2013',
+           u'Treaty on a Nuclear-Weapon-Free Zone in Central Asia (CANWFZ)': '8 September 2006',
+           u'Bangkok Treaty': '15 December 1995',
+           u'Treaty of Tlatelolco': '14 February 1967',
+           u'Moon Treaty (Celestial Bodies)': '18 December 1979',
+           u'South Pacific Nuclear Free Zone Treaty': '6 August 1985'}
+# u'Treaty of Rarotonga': '6 August 1985'}
 
 # load harvested file (from harvest.py)
 f = open('treatydata.json', 'r')
@@ -128,6 +139,21 @@ for c in allcountries:
 d = {'ratificationdays': ratdays, 'ratificationcountries': ratcountries, 'ratificationtreaties': rattreaties, 'ratificationdates': ratdates}
 tdf = pd.DataFrame(data=d)
 
+# create dataframe for accession dates
+acccountries = []
+acctreaties = []
+accdates = []
+
+for c in allcountries:
+    for t in allcountries[c]:
+        if type(allcountries[c][t]) == dict:
+            if 'acceded' in allcountries[c][t]:
+                acccountries.append(c)
+                acctreaties.append(t)
+                accdates.append(allcountries[c][t]['acceded'])
+d = {'accessioncountries': acccountries, 'accessiontreaties': acctreaties, 'accessiondates': accdates}
+acdf = pd.DataFrame(data=d)
+
 # Russian Federation
 # Treaty ratified, but not signed:
 # 1925 Geneva Protocol
@@ -211,20 +237,46 @@ wow2eifdate = (dateparser.parse(wow2date) + datetime.timedelta(days = 90)).strft
 # ban analysis
 
 banrcountries = tdf[tdf['ratificationtreaties'] == 'Treaty on the Prohibition of Nuclear Weapons']['ratificationcountries']
-br = {'country': [], 'ban': [], 'all': []}
+br = {'country': [], 'ban': [], 'all': [], 'median': []}
 for c in banrcountries:
     br['country'].append(c)
     br['ban'].append(tdf[(tdf['ratificationtreaties'] == 'Treaty on the Prohibition of Nuclear Weapons') & (tdf['ratificationcountries'] == c)]['ratificationdays'].values)
     br['all'].append(sorted(tdf[tdf['ratificationcountries'] == c]['ratificationdays'].values.tolist()))
+    br['all'][-1].remove(br['ban'][-1])
+    if br['all'][-1] != []:
+        br['median'].append(str(np.median(br['all'][-1])))
+    else:
+        br['median'].append('-')
 bdf = pd.DataFrame(data = br)
 
-# days since tpnw signature opening
-dstso =  datetime.datetime.now() - dateparser.parse(sigopen['Treaty on the Prohibition of Nuclear Weapons'])
+# days since tpnw comparison date
+dstso =  compdate - dateparser.parse(sigopen['Treaty on the Prohibition of Nuclear Weapons'])
+
+#check similar ratificaitons (accessions count as ratifications here)
 similarratlist = {}
 for t in sigopen:
     opendate = dateparser.parse(sigopen[t])
     comparedate = opendate + datetime.timedelta(days = dstso.days)
-    similarratlist[t] = len(tdf[(tdf['ratificationtreaties'] == t) & (tdf['ratificationdays'] <= dstso.days)])
+    similarratlist[t] = len(tdf[(tdf['ratificationtreaties'] == t) & (tdf['ratificationdates'] <= comparedate.strftime('%Y-%m-%d'))])
+    similaracc = len(acdf[(acdf['accessiontreaties'] == t) & (acdf['accessiondates'] <= comparedate.strftime("%Y-%m-%d"))])
+    if similaracc > 0:
+        similarratlist[t] += similaracc
+
+# competition of treaties. count accesions as ratificaitons
+comp = {'treaty': []}
+for m in range(1, 25):
+    comp[str(m)] = []
+for t in sigopen:
+    comp['treaty'].append(t)
+    for m in range(1, 25):
+        opendate = dateparser.parse(sigopen[t])
+        #six_months = date.today() + relativedelta(months=+6)
+        comparedate = opendate + relativedelta(months=m)
+        res = len(tdf[(tdf['ratificationtreaties'] == t) & (tdf['ratificationdates'] <= comparedate.strftime("%Y-%m-%d"))])
+        resa = len(acdf[(acdf['accessiontreaties'] == t) & (acdf['accessiondates'] <= comparedate.strftime("%Y-%m-%d"))])
+        comp[str(m)].append(res + resa)
+
+compdf = pd.DataFrame(comp)
 
 # 50 countries for other treaties
 club50 = {}
@@ -236,14 +288,17 @@ for t in sigopen:
         opendate = dateparser.parse(sigopen[t])
         club50[t] = (d50date - opendate).days
 
-today = datetime.datetime.now().strftime("%Y-%m-%d")
-missed = {'country': [], 'min': [], 'all': []}
+missed = {'country': [], 'min': [], 'all': [], 'median': [], 'dayssincesignature': []}
 for c in allcountries:
     if c not in banrcountries.values:
         if c in tpnwdf['signatures'].values:
-            if tpnwdf[tpnwdf['signatures'] == c]['futureratificationdate'].values[0] < today:
+            sigdate = dateparser.parse(tpnwdf[tpnwdf['signatures'] == c]['date'].values[0])
+            delta = compdate - sigdate
+            if tpnwdf[tpnwdf['signatures'] == c]['futureratificationdate'].values[0] <= compdatestring:
                 missed['country'].append(c)
                 l = sorted(tdf[tdf['ratificationcountries'] == c]['ratificationdays'].values.tolist())
+                missed['median'].append(np.median(l))
+                missed['dayssincesignature'].append(delta.days)
                 missed['min'].append(min(l))
                 missed['all'].append(l)
 midf = pd.DataFrame(data = missed)
@@ -324,14 +379,15 @@ print("  Last country to sign: {:s}".format(tpnwdf.sort_values(by=['futureratifi
 
 print("Countries that ratified TPNW")
 for index, row in bdf.iterrows():
-    print("{:s} ratified TPNW in {:s} days, and other treaties: {:s}".format(row['country'], row['ban'], str(row['all'])))
+    print("{:s} ratified TPNW in {:s} days, and other treaties: {:s} (median: {:s})".format(row['country'], row['ban'], str(row['all']), str(row['median'])))
 
 print('Among signatories, median ratification time for treaties varies between {:f} and {:f} days.'.format(min(tpnwdf['ratificationmedian']), max(tpnwdf['ratificationmedian'])))
 
-print("{:d} Countries that have missed to sign Ban Treaty faster than other treaties:".format(len(midf)))
-for c in midf['country'].values:
-    print(c)
-print("TPNW was opened for signature {:d} days ago.".format(dstso.days))
+print("{:d} Countries that have missed to ratify Ban Treaty faster than other treaties:".format(len(midf)))
+for index, row in midf.iterrows():
+    print("{:s}, days since signature {:d}, ratification time for other treaties: {:s} (median {:.2f})".format(row['country'], row['dayssincesignature'], str(row['all']), row['median']))
+
+print("TPNW was opened for signature {:d} days before {:s}.".format(dstso.days, compdatestring))
 print("after the same amount of time, ")
 
 for t in sorted(similarratlist.items(), key=operator.itemgetter(1)):
